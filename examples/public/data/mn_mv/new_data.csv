@@ -1,0 +1,124 @@
+"ship_mode","category","Measure Names","segment","region","sales","Measure Values"
+"First Class","Furniture","profit","Consumer","East",319,7
+"First Class","Furniture","quantity","Consumer","East",319,5
+"First Class","Furniture","discount","Consumer","East",319,0.1
+"First Class","Furniture","profit","Corporate","Central",201,-154
+"First Class","Furniture","quantity","Corporate","Central",201,8
+"First Class","Furniture","discount","Corporate","Central",201,1.2
+"First Class","Office Supplies","profit","Consumer","East",306,92
+"First Class","Office Supplies","quantity","Consumer","East",306,18
+"First Class","Office Supplies","discount","Consumer","East",306,0.2
+"First Class","Office Supplies","profit","Consumer","South",76,36
+"First Class","Office Supplies","quantity","Consumer","South",76,2
+"First Class","Office Supplies","discount","Consumer","South",76,0
+"First Class","Office Supplies","profit","Consumer","West",51,18
+"First Class","Office Supplies","quantity","Consumer","West",51,3
+"First Class","Office Supplies","discount","Consumer","West",51,0.2
+"First Class","Office Supplies","profit","Corporate","Central",45,9
+"First Class","Office Supplies","quantity","Corporate","Central",45,8
+"First Class","Office Supplies","discount","Corporate","Central",45,1
+"First Class","Office Supplies","profit","Corporate","South",225,64
+"First Class","Office Supplies","quantity","Corporate","South",225,4
+"First Class","Office Supplies","discount","Corporate","South",225,0
+"First Class","Office Supplies","profit","Home Office","Central",230,-49
+"First Class","Office Supplies","quantity","Home Office","Central",230,3
+"First Class","Office Supplies","discount","Home Office","Central",230,0.2
+"First Class","Technology","profit","Consumer","East",30,3
+"First Class","Technology","quantity","Consumer","East",30,2
+"First Class","Technology","discount","Consumer","East",30,0
+"First Class","Technology","profit","Corporate","Central",1144,143
+"First Class","Technology","quantity","Corporate","Central",1144,9
+"First Class","Technology","discount","Corporate","Central",1144,0.2
+"Second Class","Furniture","profit","Consumer","Central",72,3
+"Second Class","Furniture","quantity","Consumer","Central",72,8
+"Second Class","Furniture","discount","Consumer","Central",72,0.6
+"Second Class","Furniture","profit","Consumer","East",71,-1
+"Second Class","Furniture","quantity","Consumer","East",71,2
+"Second Class","Furniture","discount","Consumer","East",71,0.3
+"Second Class","Furniture","profit","Consumer","South",1296,295
+"Second Class","Furniture","quantity","Consumer","South",1296,7
+"Second Class","Furniture","discount","Consumer","South",1296,0
+"Second Class","Furniture","profit","Home Office","East",97,41
+"Second Class","Furniture","quantity","Home Office","East",97,7
+"Second Class","Furniture","discount","Home Office","East",97,0
+"Second Class","Office Supplies","profit","Consumer","Central",277,39
+"Second Class","Office Supplies","quantity","Consumer","Central",277,11
+"Second Class","Office Supplies","discount","Consumer","Central",277,0
+"Second Class","Office Supplies","profit","Consumer","West",100,23
+"Second Class","Office Supplies","quantity","Consumer","West",100,10
+"Second Class","Office Supplies","discount","Consumer","West",100,0.4
+"Second Class","Office Supplies","profit","Corporate","West",15,7
+"Second Class","Office Supplies","quantity","Corporate","West",15,2
+"Second Class","Office Supplies","discount","Corporate","West",15,0
+"Second Class","Office Supplies","profit","Home Office","Central",187,24
+"Second Class","Office Supplies","quantity","Home Office","Central",187,10
+"Second Class","Office Supplies","discount","Home Office","Central",187,0.4
+"Second Class","Technology","profit","Consumer","West",304,28
+"Second Class","Technology","quantity","Consumer","West",304,6
+"Second Class","Technology","discount","Consumer","West",304,0.2
+"Standard Class","Furniture","profit","Consumer","Central",96,20
+"Standard Class","Furniture","quantity","Consumer","Central",96,3
+"Standard Class","Furniture","discount","Consumer","Central",96,0
+"Standard Class","Furniture","profit","Consumer","East",3207,-1649
+"Standard Class","Furniture","quantity","Consumer","East",3207,10
+"Standard Class","Furniture","discount","Consumer","East",3207,0.7
+"Standard Class","Furniture","profit","Consumer","South",1887,-496
+"Standard Class","Furniture","quantity","Consumer","South",1887,15
+"Standard Class","Furniture","discount","Consumer","South",1887,0.8500000000000001
+"Standard Class","Furniture","profit","Consumer","West",2880,361
+"Standard Class","Furniture","quantity","Consumer","West",2880,23
+"Standard Class","Furniture","discount","Consumer","West",2880,0.2
+"Standard Class","Furniture","profit","Home Office","Central",957,-77
+"Standard Class","Furniture","quantity","Home Office","Central",957,11
+"Standard Class","Furniture","discount","Home Office","Central",957,0.9199999999999999
+"Standard Class","Office Supplies","profit","Consumer","Central",785,69
+"Standard Class","Office Supplies","quantity","Consumer","Central",785,20
+"Standard Class","Office Supplies","discount","Consumer","Central",785,0
+"Standard Class","Office Supplies","profit","Consumer","East",127,4
+"Standard Class","Office Supplies","quantity","Consumer","East",127,19
+"Standard Class","Office Supplies","discount","Consumer","East",127,2.2
+"Standard Class","Office Supplies","profit","Consumer","South",111,-10
+"Standard Class","Office Supplies","quantity","Consumer","South",111,6
+"Standard Class","Office Supplies","discount","Consumer","South",111,0.6000000000000001
+"Standard Class","Office Supplies","profit","Consumer","West",758,263
+"Standard Class","Office Supplies","quantity","Consumer","West",758,30
+"Standard Class","Office Supplies","discount","Consumer","West",758,0.6000000000000001
+"Standard Class","Office Supplies","profit","Corporate","Central",157,44
+"Standard Class","Office Supplies","quantity","Corporate","Central",157,20
+"Standard Class","Office Supplies","discount","Corporate","Central",157,0
+"Standard Class","Office Supplies","profit","Corporate","East",15,6
+"Standard Class","Office Supplies","quantity","Corporate","East",15,7
+"Standard Class","Office Supplies","discount","Corporate","East",15,0
+"Standard Class","Office Supplies","profit","Corporate","South",297,73
+"Standard Class","Office Supplies","quantity","Corporate","South",297,9
+"Standard Class","Office Supplies","discount","Corporate","South",297,0.4
+"Standard Class","Office Supplies","profit","Corporate","West",1217,125
+"Standard Class","Office Supplies","quantity","Corporate","West",1217,14
+"Standard Class","Office Supplies","discount","Corporate","West",1217,0.2
+"Standard Class","Office Supplies","profit","Home Office","Central",250,-70
+"Standard Class","Office Supplies","quantity","Home Office","Central",250,24
+"Standard Class","Office Supplies","discount","Home Office","Central",250,2
+"Standard Class","Office Supplies","profit","Home Office","West",6,-4
+"Standard Class","Office Supplies","quantity","Home Office","West",6,1
+"Standard Class","Office Supplies","discount","Home Office","West",6,0.7
+"Standard Class","Technology","profit","Consumer","Central",20,7
+"Standard Class","Technology","quantity","Consumer","Central",20,1
+"Standard Class","Technology","discount","Consumer","Central",20,0
+"Standard Class","Technology","profit","Consumer","East",67,11
+"Standard Class","Technology","quantity","Consumer","East",67,5
+"Standard Class","Technology","discount","Consumer","East",67,0
+"Standard Class","Technology","profit","Consumer","West",1832,165
+"Standard Class","Technology","quantity","Consumer","West",1832,12
+"Standard Class","Technology","discount","Consumer","West",1832,0.4
+"Standard Class","Technology","profit","Corporate","Central",147,17
+"Standard Class","Technology","quantity","Corporate","Central",147,4
+"Standard Class","Technology","discount","Corporate","Central",147,0.2
+"Standard Class","Technology","profit","Corporate","East",1030,299
+"Standard Class","Technology","quantity","Corporate","East",1030,5
+"Standard Class","Technology","discount","Corporate","East",1030,0
+"Standard Class","Technology","profit","Corporate","West",242,71
+"Standard Class","Technology","quantity","Corporate","West",242,6
+"Standard Class","Technology","discount","Corporate","West",242,0.4
+"Standard Class","Technology","profit","Home Office","Central",371,42
+"Standard Class","Technology","quantity","Home Office","Central",371,4
+"Standard Class","Technology","discount","Home Office","Central",371,0.2

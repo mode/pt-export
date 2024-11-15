@@ -1,0 +1,10 @@
+[
+  { "name": "category", "type": "dimension" },
+  { "name": "sub_category", "type": "dimension" },
+  { "name": "Measure Names", "type": "dimension" },
+  { "name": "segment", "type": "dimension" },
+  { "name": "sales", "type": "measure" },
+  { "name": "region", "type": "dimension", "displayName": "Region" },
+  { "name": "ship_mode", "type": "dimension" },
+  { "name": "Measure Values", "type": "measure" }
+]
