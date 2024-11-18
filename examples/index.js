@@ -1,5 +1,6 @@
 import muze from "@viz/muze";
 import "@viz/muze/muze.css";
+import { exportToExcel } from "../index.js";
 
 const loadData = async function ({
   dataSetLink = "/data/cars.json",
@@ -20,7 +21,7 @@ let { schema, data } = await loadData({
 
 const { DataModel } = muze;
 const env = muze();
-console.log("Hi");
+// console.log("Hi");
 
 const formattedData = DataModel.loadDataSync(data, schema);
 let rootData = new DataModel(formattedData);
@@ -70,4 +71,7 @@ window.canvas = env
   ])
   .mount("#chart");
 
-// console.log(window.canvas);
+const button = document.getElementById("button");
+button.addEventListener("click", (event) => {
+  exportToExcel(window.canvas);
+});
