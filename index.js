@@ -14,9 +14,8 @@ const extractPivotData = (canvas) => {
 
     // debugger;
     let prev = 0;
-
+    let prevHeader = "";
     columnHeaders[i] = row.flatMap((cell, j) => {
-      let prevHeader = "";
       //   console.log(cell);
       if (cell._source === null) {
         return "";
@@ -25,16 +24,16 @@ const extractPivotData = (canvas) => {
         if (i > 0 && typeof columnMatrix[i - 1][j]._source === "string") {
           //   console.log(j, columnHeaders[i - 1][j + 1]);
           let k = i;
-          debugger;
-          while (k !== 0) {
+          //   debugger;
+          while (k > 0) {
             columnHeaders[k - 1].splice(
               j + 1 + prev,
               0,
               ...Array(axisCellLength - 1).fill("")
             );
-            prev += axisCellLength - 1;
             k -= 1;
           }
+          prev += axisCellLength - 1;
         }
         return cell._source._domain;
       } else {
@@ -46,8 +45,8 @@ const extractPivotData = (canvas) => {
         }
       }
     });
-    console.log(columnHeaders);
   });
+  console.log(columnHeaders);
 };
 
 export const exportToExcel = (canvas) => {

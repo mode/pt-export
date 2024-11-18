@@ -58,7 +58,7 @@ window.canvas = env
   .width(900)
   .height(600)
   .rows([["Measure Names", "region", "ship_mode"]])
-  .columns([["region", "category"]])
+  .columns([["region", "category", "ship_mode"]])
   // .detail(["category"])
   .layers([
     {
