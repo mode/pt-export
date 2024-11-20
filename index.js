@@ -111,8 +111,15 @@ const extractPivotData = (canvas) => {
           dataPoint.yIndex + prevX < rowWidth &&
           dataPoint.xIndex + prevY < columnWidth
         ) {
-          geomData[dataPoint.yIndex + prevX][dataPoint.xIndex + prevY] =
-            dataPoint;
+          if (
+            geomData[dataPoint.yIndex + prevX][dataPoint.xIndex + prevY] ===
+            null
+          ) {
+            geomData[dataPoint.yIndex + prevX][dataPoint.xIndex + prevY] = [];
+          }
+          geomData[dataPoint.yIndex + prevX][dataPoint.xIndex + prevY].push(
+            dataPoint
+          );
         }
       }
       prevX += rowAxisLength[j];
