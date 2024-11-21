@@ -93,7 +93,7 @@ const extractPivotData = (canvas) => {
 
   // Exporting data from the geom matrix
   const geomMatrix = canvas._composition.layout._centerMatrix._layoutMatrix;
-
+  //   console.log(canvas._composition.layout._centerMatrix);
   let geomData = Array.from({ length: rowWidth }, () =>
     Array(columnWidth).fill(null)
   );
@@ -117,6 +117,7 @@ const extractPivotData = (canvas) => {
           ) {
             geomData[dataPoint.yIndex + prevX][dataPoint.xIndex + prevY] = [];
           }
+          //   console.log(canvas._composition.layout._centerMatrix);
           geomData[dataPoint.yIndex + prevX][dataPoint.xIndex + prevY].push(
             dataPoint
           );
@@ -127,6 +128,13 @@ const extractPivotData = (canvas) => {
     prevY += columnAxisLength[i];
   }
   console.log("geomData", geomData);
+
+  const xSplit = rowMatrix[0].length;
+  const ySplit = columnMatrix.length;
+  //   console.log("rowMatrix", rowMatrix);
+  //   console.log("columnMatrix", columnMatrix);
+  console.log("xSplit", xSplit);
+  console.log("ySplit", ySplit);
 };
 
 export const exportToExcel = (canvas) => {
