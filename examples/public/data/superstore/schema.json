@@ -1,0 +1,106 @@
+[
+  {
+    "name": "Row ID",
+    "type": "dimension"
+  },
+  {
+    "name": "Order ID",
+    "type": "dimension"
+  },
+  {
+    "name": "Order Date",
+    "type": "dimension",
+    "subtype": "temporal",
+    "format": "%m/%d/%Y"
+  },
+  {
+    "name": "Order Priority",
+    "type": "dimension"
+  },
+  {
+    "name": "Quantity",
+    "type": "measure"
+  },
+  {
+    "name": "Sales",
+    "type": "measure"
+  },
+  {
+    "name": "Discount",
+    "type": "measure"
+  },
+  {
+    "name": "Ship Mode",
+    "type": "dimension"
+  },
+  {
+    "name": "Profit",
+    "type": "measure"
+  },
+  {
+    "name": "Unit Price",
+    "type": "measure"
+  },
+  {
+    "name": "Shipping Cost",
+    "type": "measure"
+  },
+  {
+    "name": "Customer ID",
+    "type": "dimension"
+  },
+  {
+    "name": "Customer Name",
+    "type": "dimension"
+  },
+  {
+    "name": "City",
+    "type": "dimension"
+  },
+  {
+    "name": "Postal Code",
+    "type": "dimension"
+  },
+  {
+    "name": "State",
+    "type": "dimension"
+  },
+  {
+    "name": "Region",
+    "type": "dimension"
+  },
+  {
+    "name": "Country",
+    "type": "dimension"
+  },
+  {
+    "name": "Segment",
+    "type": "dimension"
+  },
+  {
+    "name": "Category",
+    "type": "dimension"
+  },
+  {
+    "name": "Sub-Category",
+    "type": "dimension"
+  },
+  {
+    "name": "Product Name",
+    "type": "dimension"
+  },
+  {
+    "name": "Container",
+    "type": "dimension"
+  },
+  {
+    "name": "Base Margin",
+    "type": "measure"
+  },
+  {
+    "name": "Ship Date",
+    "type": "dimension",
+    "subtype": "temporal",
+    "format": "%m/%d/%Y"
+  }
+]
