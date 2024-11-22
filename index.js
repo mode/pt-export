@@ -48,9 +48,13 @@ const generateTBMatrix = (matrix, headerMatrix, columnData) => {
 };
 
 const generateLRMatrix = (matrix, headerMatrix, rowData) => {
-  let { rowWidth, rowAxisLength } = rowData;
+  let { rowWidth, rowAxisLength, extraCellLengths } = rowData;
 
-  rowMatrixIter: for (let i = 0; i < matrix.length; i++) {
+  rowMatrixIter: for (
+    let i = extraCellLengths[0];
+    i < matrix.length - extraCellLengths[1];
+    i++
+  ) {
     let row = [];
     for (let j = 0; j < matrix[0].length; j++) {
       const cell = matrix[i][j];
@@ -110,11 +114,13 @@ const extractPivotData = (canvas) => {
 
   columnHeaders = [topHeaders, bottomHeaders];
   console.log("columnHeaders", columnHeaders);
-
+  console.log(canvas._composition.layout);
   // Exporting data from the row matrix
-  const rowMatrix = canvas._composition.layout._rowMatrix._layoutMatrix;
-  const leftMatrix = canvas._composition.layout._rowMatrix._primaryMatrix;
-  const rightMatrix = canvas._composition.layout._rowMatrix._secondaryMatrix;
+  const matrix = canvas._composition.layout._rowMatrix;
+  const rowMatrix = matrix._layoutMatrix;
+  const leftMatrix = matrix._primaryMatrix;
+  const rightMatrix = matrix._secondaryMatrix;
+  const extraCellLengths = matrix._config.extraCellLengths;
 
   let rowHeaders;
   let leftHeaders = [];
@@ -126,11 +132,13 @@ const extractPivotData = (canvas) => {
   leftHeaders = generateLRMatrix(leftMatrix, leftHeaders, {
     rowWidth: rowWidth,
     rowAxisLength: rowAxisLength,
+    extraCellLengths: extraCellLengths,
   });
 
   rightHeaders = generateLRMatrix(rightMatrix, rightHeaders, {
     rowWidth: rowWidth,
     rowAxisLength: rowAxisLength,
+    extraCellLengths: extraCellLengths,
   });
 
   rowHeaders = [leftHeaders, rightHeaders];
