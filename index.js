@@ -2,100 +2,146 @@ const convertToExcel = (data) => {
   console.log("Converting to excel");
 };
 
-const extractPivotData = (canvas) => {
-  let columnWidth = 0;
-  let columnAxisLength = [];
-  debugger;
-  // Exporting data from the column matrix
-  const columnMatrix = canvas._composition.layout._columnMatrix._tree.matrix;
-  let columnHeaders = new Array(columnMatrix.length);
+const generateTBMatrix = (matrix, headerMatrix, columnData) => {
+  let { columnWidth, columnAxisLength } = columnData;
 
-  columnMatrix.forEach((row, i) => {
+  matrix.forEach((row, i) => {
     let prev = 0;
     let prevHeader = "";
-    columnHeaders[i] = row.flatMap((cell, j) => {
+    headerMatrix[i] = row.flatMap((cell, j) => {
       if (cell._source === null) {
-        return "";
+        return { text: "", style: {} };
       } else if (typeof cell.source() === "object") {
         const axisCellLength = cell._source._domain.length;
-        columnWidth += axisCellLength;
+        columnWidth[0] += axisCellLength;
         columnAxisLength.push(axisCellLength);
 
-        if (i > 0 && typeof columnMatrix[i - 1][j]._source === "string") {
+        if (i > 0 && typeof matrix[i - 1][j]._source === "string") {
           let k = i;
 
           while (k > 0) {
-            columnHeaders[k - 1].splice(
+            headerMatrix[k - 1].splice(
               j + 1 + prev,
               0,
-              ...Array(axisCellLength - 1).fill("")
+              ...Array(axisCellLength - 1).fill({ text: "", style: {} })
             );
             k -= 1;
           }
           prev += axisCellLength - 1;
         }
-        return cell._source._domain;
+        return cell._source._domain.map((element) => ({
+          text: element,
+          style: {},
+        }));
       } else {
         if (prevHeader === cell._source) {
-          return "";
+          return { text: "", style: {} };
         } else {
           prevHeader = cell._source;
-          return prevHeader;
+          return { text: prevHeader, style: {} };
         }
       }
     });
   });
-  console.log("columnHeaders", columnHeaders);
 
-  // Exporting data from the row matrix
-  const rowMatrix = canvas._composition.layout._rowMatrix._tree.matrix;
-  const rowMatLength = rowMatrix.length;
-  const columnLength = rowMatrix[0].length;
+  return headerMatrix;
+};
 
-  let rowHeaders = [];
-  let rowWidth = 0;
-  let rowAxisLength = [];
+const generateLRMatrix = (matrix, headerMatrix, rowData) => {
+  let { rowWidth, rowAxisLength } = rowData;
 
-  rowMatrixIter: for (let i = 0; i < rowMatLength; i++) {
+  rowMatrixIter: for (let i = 0; i < matrix.length; i++) {
     let row = [];
-    for (let j = 0; j < columnLength; j++) {
-      const cell = rowMatrix[i][j];
+    for (let j = 0; j < matrix[0].length; j++) {
+      const cell = matrix[i][j];
       if (cell._source === null) {
-        row.push("");
+        row.push({ text: "", style: {} });
       } else if (typeof cell._source === "string") {
-        row.push(cell._source);
+        row.push({ text: cell._source, style: {} });
       } else {
         const domain = cell._source._domain.reverse();
         const axisCellLength = domain.length;
-        rowWidth += axisCellLength;
+        rowWidth[0] += axisCellLength;
         rowAxisLength.push(axisCellLength);
 
-        row.push(domain[0]);
+        row.push({ text: domain[0], style: {} });
         if (axisCellLength > 1) {
-          rowHeaders.push(row);
+          headerMatrix.push(row);
           for (let k = 1; k < axisCellLength; k++) {
-            let extraRow = Array(columnLength - 1).fill("");
-            extraRow.push(domain[k]);
-            rowHeaders.push(extraRow);
-            continue rowMatrixIter;
+            let extraRow = Array(matrix[0].length - 1).fill({
+              text: "",
+              style: {},
+            });
+            extraRow.push({ text: domain[k], style: {} });
+            headerMatrix.push(extraRow);
           }
+          continue rowMatrixIter;
         }
       }
     }
-    rowHeaders.push(row);
+    headerMatrix.push(row);
   }
-  console.log("rowHeaders", rowHeaders);
-  console.log("columnWidth", columnWidth);
+  return headerMatrix;
+};
 
-  console.log("rowWidth", rowWidth);
-  console.log("columnAxisLength", columnAxisLength);
-  console.log("rowAxisLength", rowAxisLength);
+const extractPivotData = (canvas) => {
+  let columnWidth = [0];
+  let columnAxisLength = [];
+
+  // Exporting data from the column matrix
+  const columnMatrix = canvas._composition.layout._columnMatrix._layoutMatrix;
+  const topMatrix = canvas._composition.layout._columnMatrix._primaryMatrix;
+  const bottomMatrix =
+    canvas._composition.layout._columnMatrix._secondaryMatrix;
+
+  let columnHeaders;
+  let topHeaders = new Array(topMatrix.length);
+  let bottomHeaders = new Array(bottomMatrix.length);
+
+  topHeaders = generateTBMatrix(topMatrix, topHeaders, {
+    columnWidth: columnWidth,
+    columnAxisLength: columnAxisLength,
+  });
+
+  bottomHeaders = generateTBMatrix(bottomMatrix, bottomHeaders, {
+    columnWidth: columnWidth,
+    columnAxisLength: columnAxisLength,
+  });
+
+  columnHeaders = [topHeaders, bottomHeaders];
+  console.log("columnHeaders", columnHeaders);
+
+  // Exporting data from the row matrix
+  const rowMatrix = canvas._composition.layout._rowMatrix._layoutMatrix;
+  const leftMatrix = canvas._composition.layout._rowMatrix._primaryMatrix;
+  const rightMatrix = canvas._composition.layout._rowMatrix._secondaryMatrix;
+
+  let rowHeaders;
+  let leftHeaders = [];
+  let rightHeaders = [];
+
+  let rowWidth = [0];
+  let rowAxisLength = [];
+
+  leftHeaders = generateLRMatrix(leftMatrix, leftHeaders, {
+    rowWidth: rowWidth,
+    rowAxisLength: rowAxisLength,
+  });
+
+  rightHeaders = generateLRMatrix(rightMatrix, rightHeaders, {
+    rowWidth: rowWidth,
+    rowAxisLength: rowAxisLength,
+  });
+
+  rowHeaders = [leftHeaders, rightHeaders];
+
+  console.log("rowHeaders", rowHeaders);
 
   // Exporting data from the geom matrix
   const geomMatrix = canvas._composition.layout._centerMatrix._layoutMatrix;
-  console.log("Outside", canvas._composition.layout._centerMatrix);
-  let geomData = Array.from({ length: rowWidth }, () =>
-    Array(columnWidth).fill(null)
+
+  let geomData = Array.from({ length: rowWidth[0] }, () =>
+    Array(columnWidth[0]).fill(null)
   );
 
   let prevY = 0;
@@ -147,8 +193,6 @@ const extractPivotData = (canvas) => {
 
   const xSplit = rowMatrix[0].length;
   const ySplit = columnMatrix.length;
-  //   console.log("rowMatrix", rowMatrix);
-  //   console.log("columnMatrix", columnMatrix);
   console.log("xSplit", xSplit);
   console.log("ySplit", ySplit);
 };
