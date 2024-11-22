@@ -25,7 +25,7 @@ const env = muze();
 const formattedData = DataModel.loadDataSync(data, schema);
 let rootData = new DataModel(formattedData);
 
-env
+window.canvas = env
   .canvas()
   .data(rootData)
   .width(900)
