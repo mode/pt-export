@@ -2,13 +2,13 @@ const convertToExcel = (data) => {
   console.log("Converting to excel");
 };
 
-const generateTBMatrix = (matrix, headerMatrix, columnData) => {
+const generateTBMatrix = (matrix, topMatrix, columnData, columnHeaders) => {
   let { columnWidth, columnAxisLength } = columnData;
 
   matrix.forEach((row, i) => {
     let prev = 0;
     let prevHeader = "";
-    headerMatrix[i] = row.flatMap((cell, j) => {
+    columnHeaders[i] = row.flatMap((cell, j) => {
       if (cell._source === null) {
         return { text: "", style: {} };
       } else if (typeof cell.source() === "object") {
@@ -20,7 +20,7 @@ const generateTBMatrix = (matrix, headerMatrix, columnData) => {
           let k = i;
 
           while (k > 0) {
-            headerMatrix[k - 1].splice(
+            columnHeaders[k - 1].splice(
               j + 1 + prev,
               0,
               ...Array(axisCellLength - 1).fill({ text: "", style: {} })
@@ -44,12 +44,18 @@ const generateTBMatrix = (matrix, headerMatrix, columnData) => {
     });
   });
 
-  return headerMatrix;
+  let topHeaders = columnHeaders.slice(0, topMatrix.length);
+  let bottomHeaders = columnHeaders.slice(
+    topMatrix.length,
+    topMatrix.length + columnHeaders.length
+  );
+
+  return [topHeaders, bottomHeaders];
 };
 
-const generateLRMatrix = (matrix, headerMatrix, rowData) => {
+const generateLRMatrix = (matrix, leftMatrix, rowData, rowHeaders) => {
   let { rowWidth, rowAxisLength, extraCellLengths } = rowData;
-
+  debugger;
   rowMatrixIter: for (
     let i = extraCellLengths[0];
     i < matrix.length - extraCellLengths[1];
@@ -70,22 +76,30 @@ const generateLRMatrix = (matrix, headerMatrix, rowData) => {
 
         row.push({ text: domain[0], style: {} });
         if (axisCellLength > 1) {
-          headerMatrix.push(row);
+          rowHeaders.push(row);
           for (let k = 1; k < axisCellLength; k++) {
             let extraRow = Array(matrix[0].length - 1).fill({
               text: "",
               style: {},
             });
             extraRow.push({ text: domain[k], style: {} });
-            headerMatrix.push(extraRow);
+            rowHeaders.push(extraRow);
           }
           continue rowMatrixIter;
         }
       }
     }
-    headerMatrix.push(row);
+    rowHeaders.push(row);
   }
-  return headerMatrix;
+
+  const leftHeaders = rowHeaders.map((row) =>
+    row.slice(0, leftMatrix[0].length)
+  );
+  const rightHeaders = rowHeaders.map((row) =>
+    row.slice(leftMatrix[0].length, leftMatrix[0].length + matrix[0].length)
+  );
+
+  return [leftHeaders, rightHeaders];
 };
 
 const extractPivotData = (canvas) => {
@@ -98,23 +112,21 @@ const extractPivotData = (canvas) => {
   const bottomMatrix =
     canvas._composition.layout._columnMatrix._secondaryMatrix;
 
-  let columnHeaders;
-  let topHeaders = new Array(topMatrix.length);
-  let bottomHeaders = new Array(bottomMatrix.length);
+  let cHeaders = new Array(columnMatrix.length);
 
-  topHeaders = generateTBMatrix(topMatrix, topHeaders, {
-    columnWidth: columnWidth,
-    columnAxisLength: columnAxisLength,
-  });
+  let columnHeaders = generateTBMatrix(
+    columnMatrix,
+    topMatrix,
+    {
+      columnWidth: columnWidth,
+      columnAxisLength: columnAxisLength,
+    },
+    cHeaders
+  );
 
-  bottomHeaders = generateTBMatrix(bottomMatrix, bottomHeaders, {
-    columnWidth: columnWidth,
-    columnAxisLength: columnAxisLength,
-  });
-
-  columnHeaders = [topHeaders, bottomHeaders];
   console.log("columnHeaders", columnHeaders);
   console.log(canvas._composition.layout);
+
   // Exporting data from the row matrix
   const matrix = canvas._composition.layout._rowMatrix;
   const rowMatrix = matrix._layoutMatrix;
@@ -122,35 +134,32 @@ const extractPivotData = (canvas) => {
   const rightMatrix = matrix._secondaryMatrix;
   const extraCellLengths = matrix._config.extraCellLengths;
 
-  let rowHeaders;
-  let leftHeaders = [];
-  let rightHeaders = [];
+  let rHeaders = [];
 
   let rowWidth = [0];
   let rowAxisLength = [];
 
-  leftHeaders = generateLRMatrix(leftMatrix, leftHeaders, {
-    rowWidth: rowWidth,
-    rowAxisLength: rowAxisLength,
-    extraCellLengths: extraCellLengths,
-  });
-
-  rightHeaders = generateLRMatrix(rightMatrix, rightHeaders, {
-    rowWidth: rowWidth,
-    rowAxisLength: rowAxisLength,
-    extraCellLengths: extraCellLengths,
-  });
-
-  rowHeaders = [leftHeaders, rightHeaders];
+  let rowHeaders = generateLRMatrix(
+    rowMatrix,
+    leftMatrix,
+    {
+      rowWidth: rowWidth,
+      rowAxisLength: rowAxisLength,
+      extraCellLengths: extraCellLengths,
+    },
+    rHeaders
+  );
 
   console.log("rowHeaders", rowHeaders);
 
   // Exporting data from the geom matrix
   const geomMatrix = canvas._composition.layout._centerMatrix._layoutMatrix;
-
+  debugger;
   let geomData = Array.from({ length: rowWidth[0] }, () =>
     Array(columnWidth[0]).fill(null)
   );
+
+  const retinalAxes = geomMatrix[0][0]._source._axes;
 
   let prevY = 0;
   for (let i = 0; i < geomMatrix[0].length; i++) {
@@ -170,16 +179,16 @@ const extractPivotData = (canvas) => {
       for (let k = 0; k < dataLength; k++) {
         const dataPoint = data[k];
 
-        if (!("xIndex" in dataPoint)) {
+        if (dataPoint && !("xIndex" in dataPoint)) {
           dataPoint.xIndex = axes[0].getIndex(dataPoint.x);
         }
-        if (!("yIndex" in dataPoint)) {
+        if (dataPoint && !("yIndex" in dataPoint)) {
           dataPoint.yIndex = axes[1].getIndex(dataPoint.y);
         }
 
         if (
-          dataPoint.yIndex + prevX < rowWidth &&
-          dataPoint.xIndex + prevY < columnWidth
+          dataPoint?.yIndex + prevX < rowWidth &&
+          dataPoint?.xIndex + prevY < columnWidth
         ) {
           if (
             geomData[dataPoint.yIndex + prevX][dataPoint.xIndex + prevY] ===
