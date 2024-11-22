@@ -31,7 +31,7 @@ window.canvas = env
   .width(900)
   .height(600)
   .rows(["Sub-Category", "Ship Mode"])
-  .columns(["Ship Mode"])
+  .columns(["Region" ,"Ship Mode"])
   .layers([
     {
       mark: "text",
