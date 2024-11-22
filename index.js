@@ -184,7 +184,7 @@ const convertToExcel = (params) => {
 const extractPivotData = (canvas) => {
   let columnWidth = 0;
   let columnAxisLength = [];
-
+  debugger;
   // Exporting data from the column matrix
   const columnMatrix = canvas._composition.layout._columnMatrix._tree.matrix;
   let columnHeaders = new Array(columnMatrix.length);
@@ -235,7 +235,7 @@ const extractPivotData = (canvas) => {
   let rowWidth = 0;
   let rowAxisLength = [];
 
-  rowMatrixIter: for (let i = columnMatrix.length; i < rowMatLength; i++) {
+  rowMatrixIter: for (let i = 0; i < rowMatLength; i++) {
     let row = [];
     for (let j = 0; j < columnLength; j++) {
       const cell = rowMatrix[i][j];
@@ -272,7 +272,7 @@ const extractPivotData = (canvas) => {
 
   // Exporting data from the geom matrix
   const geomMatrix = canvas._composition.layout._centerMatrix._layoutMatrix;
-  //   console.log(canvas._composition.layout._centerMatrix);
+  console.log("Outside", canvas._composition.layout._centerMatrix);
   let geomData = Array.from({ length: rowWidth }, () =>
     Array(columnWidth).fill(null)
   );
@@ -281,10 +281,26 @@ const extractPivotData = (canvas) => {
   for (let i = 0; i < geomMatrix[0].length; i++) {
     let prevX = 0;
     for (let j = 0; j < geomMatrix.length; j++) {
+      let textLayer = geomMatrix[j][i]._source._layers[0];
+      let dataLength;
+      let axes = [textLayer._axes.x, textLayer._axes.y];
       let data = geomMatrix[j][i]._source._layers[0]._pointMap;
+      dataLength = Object.keys(data).length;
 
-      for (let k = 0; k < Object.keys(data).length; k++) {
+      if (Object.keys(data).length === 0) {
+        data = geomMatrix[j][i]._source._layers[0]._normalizedData[0];
+        dataLength = data.length;
+      }
+
+      for (let k = 0; k < dataLength; k++) {
         const dataPoint = data[k];
+
+        if (!("xIndex" in dataPoint)) {
+          dataPoint.xIndex = axes[0].getIndex(dataPoint.x);
+        }
+        if (!("yIndex" in dataPoint)) {
+          dataPoint.yIndex = axes[1].getIndex(dataPoint.y);
+        }
 
         if (
           dataPoint.yIndex + prevX < rowWidth &&
