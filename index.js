@@ -55,20 +55,31 @@ const insertColumnHeaders = (columnHeaders, sheet) => {
 
 const insertRowHeaders = (rowHeaders, sheet, prevRowCount) => {
   rowHeaders.forEach((row) => {
-    sheet.addRow(row);
+    // Process each row
+    const formattedRow = row.map((cell) => {
+      // Check if the cell is an object with a 'text' property
+      if (cell && typeof cell === "object") {
+        return Number(cell.text) ? Number(cell.text) : cell.text; // Extract and return the 'text' value
+      }
+      return " ";
+    });
+
+    console.log("formattedRow", formattedRow);
+
+    // Add the formatted row to the sheet
+    sheet.addRow(formattedRow);
   });
 
   const numOfCols = rowHeaders[0].length;
 
-  // const rowLen = findLastNonEmptyRow(rowHeaders);
   const rowLen = rowHeaders.length;
-  // Traverse columns
+  // // Traverse columns
   for (let col = 1; col <= numOfCols; col++) {
     let startRow = null;
     let mergeValue = "";
 
     for (let row = 1; row <= rowLen; row++) {
-      const cellValue = rowHeaders[row - 1][col - 1];
+      const cellValue = rowHeaders[row - 1][col - 1].text;
 
       if (cellValue && cellValue !== mergeValue) {
         // If a new mergeValue is found, close the previous merge (if any)
@@ -113,6 +124,7 @@ const insertRowHeaders = (rowHeaders, sheet, prevRowCount) => {
 };
 
 const insertGeomMatrix = (geomData, sheet, prevRowCount, prevColCount) => {
+  debugger;
   let rowNo = prevRowCount + 1;
   const columnNoStart = prevColCount + 1;
 
@@ -155,26 +167,29 @@ const convertToExcel = (params) => {
   const workbook = new ExcelJS.Workbook();
   const sheet = workbook.addWorksheet("Sheet", {
     views: [
-      {
-        state: "frozen", // Enables frozen view
-        xSplit: xSplit, // Freezes columns
-        ySplit: ySplit, // Freezes rows
-      },
+      // {
+      //   state: "frozen", // Enables frozen view
+      //   xSplit: xSplit, // Freezes columns
+      //   ySplit: ySplit, // Freezes rows
+      // },
     ],
   });
 
-  insertColumnHeaders(columnHeaders, sheet);
-
-  insertRowHeaders(rowHeaders, sheet, columnHeaders.length);
+  // insertColumnHeaders(columnHeaders, sheet);
+  insertRowHeaders(rowHeaders[0], sheet, 
+    0,
+    columnHeaders[0].length,
+  ); //Inserting left row matrix
 
   insertGeomMatrix(
     geomData,
     sheet,
-    columnHeaders.length,
-    rowHeaders.length > 0 ? rowHeaders[0].length : 0
+    // columnHeaders[0].length,
+    0,
+    rowHeaders[0].length > 0 ? rowHeaders[0][0].length : 0
   );
 
-  //Create a BLOB object from the workbook
+  // Create a BLOB object from the workbook
   workbook.xlsx.writeBuffer().then((buffer) => {
     const blob = new Blob([buffer], {
       type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
@@ -393,6 +408,5 @@ const extractPivotData = (canvas) => {
 
 export const exportToExcel = (canvas) => {
   const data = extractPivotData(canvas);
-  console.log(data);
-  // convertToExcel(data);
+  convertToExcel(data);
 };
