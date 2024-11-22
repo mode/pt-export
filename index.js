@@ -2,12 +2,19 @@ const convertToExcel = (data) => {
   console.log("Converting to excel");
 };
 
-const generateTBMatrix = (matrix, topMatrix, columnData, columnHeaders) => {
+const generateTBMatrix = (
+  matrix,
+  topMatrix,
+  columnData,
+  columnHeaders,
+  columnMaxWidths
+) => {
   let { columnWidth, columnAxisLength } = columnData;
 
   matrix.forEach((row, i) => {
     let prev = 0;
     let prevHeader = "";
+
     columnHeaders[i] = row.flatMap((cell, j) => {
       if (cell._source === null) {
         return { text: "", style: {} };
@@ -53,9 +60,16 @@ const generateTBMatrix = (matrix, topMatrix, columnData, columnHeaders) => {
   return [topHeaders, bottomHeaders];
 };
 
-const generateLRMatrix = (matrix, leftMatrix, rowData, rowHeaders) => {
+const generateLRMatrix = (
+  matrix,
+  leftMatrix,
+  rowData,
+  rowHeaders,
+  rowMaxWidths
+) => {
   let { rowWidth, rowAxisLength, extraCellLengths } = rowData;
   debugger;
+
   rowMatrixIter: for (
     let i = extraCellLengths[0];
     i < matrix.length - extraCellLengths[1];
@@ -67,6 +81,7 @@ const generateLRMatrix = (matrix, leftMatrix, rowData, rowHeaders) => {
       if (cell._source === null) {
         row.push({ text: "", style: {} });
       } else if (typeof cell._source === "string") {
+        rowMaxWidths[j] = Math.max(rowMaxWidths[j], cell._source.length);
         row.push({ text: cell._source, style: {} });
       } else {
         const domain = cell._source._domain.reverse();
@@ -74,6 +89,7 @@ const generateLRMatrix = (matrix, leftMatrix, rowData, rowHeaders) => {
         rowWidth[0] += axisCellLength;
         rowAxisLength.push(axisCellLength);
 
+        rowMaxWidths[j] = Math.max(rowMaxWidths[j], domain[0].length);
         row.push({ text: domain[0], style: {} });
         if (axisCellLength > 1) {
           rowHeaders.push(row);
@@ -82,6 +98,8 @@ const generateLRMatrix = (matrix, leftMatrix, rowData, rowHeaders) => {
               text: "",
               style: {},
             });
+
+            rowMaxWidths[j] = Math.max(rowMaxWidths[j], domain[k].length);
             extraRow.push({ text: domain[k], style: {} });
             rowHeaders.push(extraRow);
           }
@@ -105,7 +123,7 @@ const generateLRMatrix = (matrix, leftMatrix, rowData, rowHeaders) => {
 const extractPivotData = (canvas) => {
   let columnWidth = [0];
   let columnAxisLength = [];
-
+  debugger;
   // Exporting data from the column matrix
   const columnMatrix = canvas._composition.layout._columnMatrix._layoutMatrix;
   const topMatrix = canvas._composition.layout._columnMatrix._primaryMatrix;
@@ -113,6 +131,9 @@ const extractPivotData = (canvas) => {
     canvas._composition.layout._columnMatrix._secondaryMatrix;
 
   let cHeaders = new Array(columnMatrix.length);
+  let columnMaxWidths = new Array(
+    columnMatrix[columnMatrix.length - 1].length
+  ).fill(0);
 
   let columnHeaders = generateTBMatrix(
     columnMatrix,
@@ -121,10 +142,12 @@ const extractPivotData = (canvas) => {
       columnWidth: columnWidth,
       columnAxisLength: columnAxisLength,
     },
-    cHeaders
+    cHeaders,
+    columnMaxWidths
   );
 
   console.log("columnHeaders", columnHeaders);
+  console.log("columnMaxWidths", columnMaxWidths);
   console.log(canvas._composition.layout);
 
   // Exporting data from the row matrix
@@ -138,6 +161,7 @@ const extractPivotData = (canvas) => {
 
   let rowWidth = [0];
   let rowAxisLength = [];
+  let rowMaxWidths = new Array(rowMatrix[0].length).fill(0);
 
   let rowHeaders = generateLRMatrix(
     rowMatrix,
@@ -147,10 +171,30 @@ const extractPivotData = (canvas) => {
       rowAxisLength: rowAxisLength,
       extraCellLengths: extraCellLengths,
     },
-    rHeaders
+    rHeaders,
+    rowMaxWidths
   );
 
   console.log("rowHeaders", rowHeaders);
+  //   console.log("rowMaxWidths", rowMaxWidths);
+
+  // Generate max column widths
+  const lastColumn =
+    columnHeaders[1].length !== 0
+      ? columnHeaders[1][columnHeaders[1].length - 1]
+      : columnHeaders[0][columnHeaders[0].length - 1];
+
+  const maxWidths = new Array(lastColumn.length).fill(0);
+
+  lastColumn.forEach((obj, i) => {
+    if (rowMaxWidths[i]) {
+      maxWidths[i] = Math.max(rowMaxWidths[i], obj.text.length);
+    } else {
+      maxWidths[i] = obj.text.length;
+    }
+  });
+
+  console.log("maxWidths", maxWidths);
 
   // Exporting data from the geom matrix
   const geomMatrix = canvas._composition.layout._centerMatrix._layoutMatrix;
