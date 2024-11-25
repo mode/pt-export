@@ -63,12 +63,16 @@ const generateTBMatrix = (
 const generateLRMatrix = (
   matrix,
   leftMatrix,
+  rightMatrix,
   rowData,
   rowHeaders,
   rowMaxWidths
 ) => {
   let { rowWidth, rowAxisLength, extraCellLengths } = rowData;
-  debugger;
+
+  if (rightMatrix.length > 0) {
+    matrix = matrix.map((row) => row.reverse());
+  }
 
   rowMatrixIter: for (
     let i = extraCellLengths[0];
@@ -77,7 +81,8 @@ const generateLRMatrix = (
   ) {
     let row = [];
     for (let j = 0; j < matrix[0].length; j++) {
-      const cell = matrix[i][j];
+      let cell = matrix[i][j];
+
       if (cell._source === null) {
         row.push({ text: "", style: {} });
       } else if (typeof cell._source === "string") {
@@ -91,8 +96,10 @@ const generateLRMatrix = (
 
         rowMaxWidths[j] = Math.max(rowMaxWidths[j], domain[0].length);
         row.push({ text: domain[0], style: {} });
+
         if (axisCellLength > 1) {
           rowHeaders.push(row);
+
           for (let k = 1; k < axisCellLength; k++) {
             let extraRow = Array(matrix[0].length - 1).fill({
               text: "",
@@ -117,13 +124,17 @@ const generateLRMatrix = (
     row.slice(leftMatrix[0].length, leftMatrix[0].length + matrix[0].length)
   );
 
+  if (rightMatrix.length > 0) {
+    return [rightHeaders, leftHeaders];
+  }
+
   return [leftHeaders, rightHeaders];
 };
 
 const extractPivotData = (canvas) => {
   let columnWidth = [0];
   let columnAxisLength = [];
-  debugger;
+
   // Exporting data from the column matrix
   const columnMatrix = canvas._composition.layout._columnMatrix._layoutMatrix;
   const topMatrix = canvas._composition.layout._columnMatrix._primaryMatrix;
@@ -166,6 +177,7 @@ const extractPivotData = (canvas) => {
   let rowHeaders = generateLRMatrix(
     rowMatrix,
     leftMatrix,
+    rightMatrix,
     {
       rowWidth: rowWidth,
       rowAxisLength: rowAxisLength,
@@ -198,7 +210,7 @@ const extractPivotData = (canvas) => {
 
   // Exporting data from the geom matrix
   const geomMatrix = canvas._composition.layout._centerMatrix._layoutMatrix;
-  debugger;
+
   let geomData = Array.from({ length: rowWidth[0] }, () =>
     Array(columnWidth[0]).fill(null)
   );
@@ -217,7 +229,7 @@ const extractPivotData = (canvas) => {
 
       if (Object.keys(data).length === 0) {
         data = geomMatrix[j][i]._source._layers[0]._normalizedData[0];
-        dataLength = data.length;
+        dataLength = data?.length;
       }
 
       for (let k = 0; k < dataLength; k++) {
@@ -252,8 +264,8 @@ const extractPivotData = (canvas) => {
   }
   console.log("geomData", geomData);
 
-  const xSplit = rowMatrix[0].length;
-  const ySplit = columnMatrix.length;
+  const xSplit = rowHeaders[0][0].length;
+  const ySplit = columnHeaders[0].length;
   console.log("xSplit", xSplit);
   console.log("ySplit", ySplit);
 };
