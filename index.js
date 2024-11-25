@@ -137,10 +137,13 @@ const generateLRMatrix = (
   );
 
   if (rightMatrix.length > 0) {
-    let temp = rightRowMaxWidths;
+    let temp = [...rightRowMaxWidths];
 
-    rightRowMaxWidths = leftRowMaxWidths;
-    leftRowMaxWidths = temp;
+    rightRowMaxWidths.length = 0;
+    rightRowMaxWidths.push(...leftRowMaxWidths);
+
+    leftRowMaxWidths.length = 0;
+    leftRowMaxWidths.push(...temp);
 
     return [rightHeaders, leftHeaders];
   }
