@@ -29,27 +29,39 @@ async function saveExcelFile(blob) {
   }
 }
 
-const insertColumnHeaders = (columnHeaders, sheet) => {
+const insertColumnHeaders = (columnHeaders, sheet, prevRowsCount) => {
   columnHeaders.forEach((row) => {
-    sheet.addRow(row);
+       // Process each row
+       const formattedRow = row.map((cell) => {
+        if (cell && typeof cell === "object") {
+          return Number(cell.text) ? Number(cell.text) : cell.text; 
+        }
+        return " ";
+      });
+
+      console.log("formattedRow" , formattedRow);
+  
+      // Add the formatted row to the sheet
+      sheet.addRow(formattedRow);
   });
 
   columnHeaders.forEach((rowData, rowIdx) => {
+    debugger;
     let startIdx = 0;
-    while (startIdx < rowData.length && rowData[startIdx] === "") startIdx++;
+    while (startIdx < rowData.length && rowData[startIdx].text === "") startIdx++;
 
-    if (startIdx > 0) sheet.mergeCells(rowIdx + 1, 1, rowIdx + 1, startIdx); //Need to pass the rowNo and columnNo
+    if (startIdx > 0) sheet.mergeCells(prevRowsCount + rowIdx + 1, 1, prevRowsCount + rowIdx + 1, startIdx); //Need to pass the rowNo and columnNo
     if (startIdx === rowData.length) return;
 
     let endIdx = startIdx;
     while (startIdx < rowData.length) {
-      if (rowData[startIdx] !== "" && startIdx !== endIdx) {
-        sheet.mergeCells(rowIdx + 1, endIdx + 1, rowIdx + 1, startIdx);
+      if (rowData[startIdx].text !== "" && startIdx !== endIdx) {
+        sheet.mergeCells(prevRowsCount + rowIdx + 1, endIdx + 1, prevRowsCount + rowIdx + 1, startIdx);
         endIdx = startIdx;
       }
       startIdx++;
     }
-    sheet.mergeCells(rowIdx + 1, endIdx + 1, rowIdx + 1, startIdx);
+    sheet.mergeCells(prevRowsCount + rowIdx + 1, endIdx + 1, prevRowsCount + rowIdx + 1, startIdx);
   });
 };
 
@@ -57,14 +69,11 @@ const insertRowHeaders = (rowHeaders, sheet, prevRowCount) => {
   rowHeaders.forEach((row) => {
     // Process each row
     const formattedRow = row.map((cell) => {
-      // Check if the cell is an object with a 'text' property
       if (cell && typeof cell === "object") {
-        return Number(cell.text) ? Number(cell.text) : cell.text; // Extract and return the 'text' value
+        return Number(cell.text) ? Number(cell.text) : cell.text; 
       }
       return " ";
     });
-
-    console.log("formattedRow", formattedRow);
 
     // Add the formatted row to the sheet
     sheet.addRow(formattedRow);
@@ -167,25 +176,27 @@ const convertToExcel = (params) => {
   const workbook = new ExcelJS.Workbook();
   const sheet = workbook.addWorksheet("Sheet", {
     views: [
-      // {
-      //   state: "frozen", // Enables frozen view
-      //   xSplit: xSplit, // Freezes columns
-      //   ySplit: ySplit, // Freezes rows
-      // },
+      {
+        state: "frozen", // Enables frozen view
+        xSplit: xSplit, // Freezes columns
+        ySplit: ySplit, // Freezes rows
+      },
     ],
   });
 
-  // insertColumnHeaders(columnHeaders, sheet);
-  insertRowHeaders(rowHeaders[0], sheet, 
-    0,
-    columnHeaders[0].length,
-  ); //Inserting left row matrix
+  insertColumnHeaders(columnHeaders[0], sheet , 0);  //Insert top column Matrix
 
+  insertRowHeaders(rowHeaders[0], sheet, columnHeaders[0].length); //Inserting left row matrix
+
+  if(columnHeaders[1].length) {
+    const prevRowsCount = columnHeaders[0].length + rowHeaders[0].length;
+    insertColumnHeaders(columnHeaders[1], sheet , prevRowsCount);  //Inserting bottom column matrix
+  } 
+ 
   insertGeomMatrix(
     geomData,
     sheet,
-    // columnHeaders[0].length,
-    0,
+    columnHeaders[0].length,
     rowHeaders[0].length > 0 ? rowHeaders[0][0].length : 0
   );
 
@@ -404,8 +415,8 @@ const extractPivotData = (canvas) => {
   }
   console.log("geomData", geomData);
 
-  const xSplit = rowMatrix[0].length;
-  const ySplit = columnMatrix.length;
+  const xSplit = rowHeaders[0][0].length;
+  const ySplit = columnHeaders[0].length;
   return {
     columnHeaders: columnHeaders,
     rowHeaders: rowHeaders,
