@@ -66,9 +66,11 @@ const generateLRMatrix = (
   rightMatrix,
   rowData,
   rowHeaders,
-  rowMaxWidths
+  leftRowMaxWidths,
+  rightRowMaxWidths
 ) => {
   let { rowWidth, rowAxisLength, extraCellLengths } = rowData;
+  let rowMaxWidths = new Array(matrix[0].length).fill(0);
 
   if (rightMatrix.length > 0) {
     matrix = matrix.map((row) => row.reverse());
@@ -120,11 +122,26 @@ const generateLRMatrix = (
   const leftHeaders = rowHeaders.map((row) =>
     row.slice(0, leftMatrix[0].length)
   );
+
+  leftRowMaxWidths.push(...rowMaxWidths.slice(0, leftMatrix[0].length));
+
   const rightHeaders = rowHeaders.map((row) =>
     row.slice(leftMatrix[0].length, leftMatrix[0].length + matrix[0].length)
   );
 
+  rightRowMaxWidths.push(
+    ...rowMaxWidths.slice(
+      leftMatrix[0].length,
+      leftMatrix[0].length + matrix[0].length
+    )
+  );
+
   if (rightMatrix.length > 0) {
+    let temp = rightRowMaxWidths;
+
+    rightRowMaxWidths = leftRowMaxWidths;
+    leftRowMaxWidths = temp;
+
     return [rightHeaders, leftHeaders];
   }
 
@@ -172,7 +189,8 @@ const extractPivotData = (canvas) => {
 
   let rowWidth = [0];
   let rowAxisLength = [];
-  let rowMaxWidths = new Array(rowMatrix[0].length).fill(0);
+  let leftRowMaxWidths = [];
+  let rightRowMaxWidths = [];
 
   let rowHeaders = generateLRMatrix(
     rowMatrix,
@@ -184,23 +202,28 @@ const extractPivotData = (canvas) => {
       extraCellLengths: extraCellLengths,
     },
     rHeaders,
-    rowMaxWidths
+    leftRowMaxWidths,
+    rightRowMaxWidths
   );
 
   console.log("rowHeaders", rowHeaders);
-  //   console.log("rowMaxWidths", rowMaxWidths);
 
-  // Generate max column widths
+  // Calculating the maximum width of text in each column
   const lastColumn =
     columnHeaders[1].length !== 0
       ? columnHeaders[1][columnHeaders[1].length - 1]
       : columnHeaders[0][columnHeaders[0].length - 1];
 
   const maxWidths = new Array(lastColumn.length).fill(0);
+  let rightRowLength = rightRowMaxWidths.length;
 
+  let lastInd = 0;
   lastColumn.forEach((obj, i) => {
-    if (rowMaxWidths[i]) {
-      maxWidths[i] = Math.max(rowMaxWidths[i], obj.text.length);
+    if (i < leftRowMaxWidths.length) {
+      maxWidths[i] = Math.max(leftRowMaxWidths[i], obj.text.length);
+    } else if (i >= lastColumn.length - rightRowLength) {
+      maxWidths[i] = Math.max(rightRowMaxWidths[lastInd], obj.text.length);
+      lastInd += 1;
     } else {
       maxWidths[i] = obj.text.length;
     }
