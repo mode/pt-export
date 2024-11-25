@@ -1,5 +1,5 @@
 import ExcelJS from "exceljs";
-import { STARTCOLUMN, STARTROW } from "./constants.js";
+import { STARTCOLUMN, STARTROW , PADDING} from "./constants.js";
 
 async function saveExcelFile(blob) {
   try {
@@ -84,7 +84,7 @@ const insertColumnHeaders = (columnHeaders, sheet, prevRowsCount) => {
   });
 };
 
-const insertRowHeaders = (rowHeaders, sheet, prevRowsCount) => {
+const insertRowHeaders = (rowHeaders, sheet, prevRowsCount , prevColsCount) => {
  rowHeaders.forEach((row, rowIdx) => {
     row.forEach((cell, colIdx) => {
       const formattedCell =
@@ -96,7 +96,7 @@ const insertRowHeaders = (rowHeaders, sheet, prevRowsCount) => {
 
       const targetCell = sheet.getCell(
         STARTROW + rowIdx + prevRowsCount,
-        STARTCOLUMN + colIdx
+        STARTCOLUMN + colIdx + prevColsCount
       );
       targetCell.value = formattedCell;
     });
@@ -118,12 +118,12 @@ const insertRowHeaders = (rowHeaders, sheet, prevRowsCount) => {
         if (startRow !== null) {
           sheet.mergeCells(
             prevRowsCount + startRow + STARTROW - 1,
-            STARTCOLUMN + col - 1,
+            STARTCOLUMN + col + prevColsCount - 1,
             prevRowsCount + STARTROW + row - 2,
-            STARTCOLUMN + col - 1
+            STARTCOLUMN + col + prevColsCount - 1
           );
 
-          sheet.getCell(prevRowsCount + startRow + STARTROW - 1, STARTCOLUMN + col - 1).alignment = {
+          sheet.getCell(prevRowsCount + startRow + STARTROW - 1, STARTCOLUMN + col + prevColsCount - 1).alignment = {
             vertical: "top",
           };
         }
@@ -143,12 +143,12 @@ const insertRowHeaders = (rowHeaders, sheet, prevRowsCount) => {
     if (startRow !== null) {
       sheet.mergeCells(
         prevRowsCount + startRow + STARTROW - 1,
-        STARTCOLUMN + col - 1,
+        STARTCOLUMN + col + prevColsCount - 1,
         prevRowsCount + rowLen + STARTROW - 1,
-        STARTCOLUMN + col - 1
+        STARTCOLUMN + col + prevColsCount - 1
       );
 
-      sheet.getCell(prevRowsCount + startRow + STARTROW - 1, col + STARTCOLUMN - 1).alignment = {
+      sheet.getCell(prevRowsCount + startRow + STARTROW - 1, col + STARTCOLUMN + prevColsCount - 1).alignment = {
         vertical: "top",
       };
     }
@@ -196,7 +196,7 @@ const insertGeomMatrix = (geomData, sheet, prevRowsCount, prevColCount) => {
 
 const setColumnWidth = (maxWidths, sheet) => {
   maxWidths.forEach((width, index) => {
-    sheet.getColumn(index + STARTCOLUMN).width = width; // ExcelJS columns are 1-based
+    sheet.getColumn(index + STARTCOLUMN).width = width + PADDING; // ExcelJS columns are 1-based 
   });
 };
 
@@ -218,7 +218,7 @@ const convertToExcel = (params) => {
 
   insertColumnHeaders(columnHeaders[0], sheet, 0); //Insert top column Matrix
 
-  insertRowHeaders(rowHeaders[0], sheet, columnHeaders[0].length); //Inserting left row matrix
+  insertRowHeaders(rowHeaders[0], sheet, columnHeaders[0].length , 0); //Inserting left row matrix
 
   if (columnHeaders[1].length) {
     const prevRowsCount = columnHeaders[0].length + rowHeaders[0].length;
@@ -231,6 +231,12 @@ const convertToExcel = (params) => {
     columnHeaders[0].length,
     rowHeaders[0].length > 0 ? rowHeaders[0][0].length : 0
   );
+
+  if(rowHeaders[1][0].length) {
+    debugger;
+    const prevColsCount = rowHeaders[0][1].length + geomData[0].length;
+    insertRowHeaders(rowHeaders[1], sheet, columnHeaders[0].length , prevColsCount);
+  }
 
   // Create a BLOB object from the workbook
   workbook.xlsx.writeBuffer().then((buffer) => {
@@ -302,12 +308,16 @@ const generateTBMatrix = (
 const generateLRMatrix = (
   matrix,
   leftMatrix,
+  rightMatrix,
   rowData,
   rowHeaders,
   rowMaxWidths
 ) => {
   let { rowWidth, rowAxisLength, extraCellLengths } = rowData;
-  debugger;
+
+  if (rightMatrix.length > 0) {
+    matrix = matrix.map((row) => row.reverse());
+  }
 
   rowMatrixIter: for (
     let i = extraCellLengths[0];
@@ -316,7 +326,8 @@ const generateLRMatrix = (
   ) {
     let row = [];
     for (let j = 0; j < matrix[0].length; j++) {
-      const cell = matrix[i][j];
+      let cell = matrix[i][j];
+
       if (cell._source === null) {
         row.push({ text: "", style: {} });
       } else if (typeof cell._source === "string") {
@@ -330,8 +341,10 @@ const generateLRMatrix = (
 
         rowMaxWidths[j] = Math.max(rowMaxWidths[j], domain[0].length);
         row.push({ text: domain[0], style: {} });
+
         if (axisCellLength > 1) {
           rowHeaders.push(row);
+
           for (let k = 1; k < axisCellLength; k++) {
             let extraRow = Array(matrix[0].length - 1).fill({
               text: "",
@@ -355,6 +368,10 @@ const generateLRMatrix = (
   const rightHeaders = rowHeaders.map((row) =>
     row.slice(leftMatrix[0].length, leftMatrix[0].length + matrix[0].length)
   );
+
+  if (rightMatrix.length > 0) {
+    return [rightHeaders, leftHeaders];
+  }
 
   return [leftHeaders, rightHeaders];
 };
@@ -404,6 +421,7 @@ const extractPivotData = (canvas) => {
   let rowHeaders = generateLRMatrix(
     rowMatrix,
     leftMatrix,
+    rightMatrix,
     {
       rowWidth: rowWidth,
       rowAxisLength: rowAxisLength,
@@ -436,7 +454,7 @@ const extractPivotData = (canvas) => {
 
   // Exporting data from the geom matrix
   const geomMatrix = canvas._composition.layout._centerMatrix._layoutMatrix;
-  debugger;
+
   let geomData = Array.from({ length: rowWidth[0] }, () =>
     Array(columnWidth[0]).fill(null)
   );
@@ -455,7 +473,7 @@ const extractPivotData = (canvas) => {
 
       if (Object.keys(data).length === 0) {
         data = geomMatrix[j][i]._source._layers[0]._normalizedData[0];
-        dataLength = data.length;
+        dataLength = data?.length;
       }
 
       for (let k = 0; k < dataLength; k++) {

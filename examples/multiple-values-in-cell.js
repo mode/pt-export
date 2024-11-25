@@ -32,6 +32,15 @@ window.canvas = env
   .height(600)
   .rows(["Sub-Category", "Ship Mode"])
   .columns(["Region" ,"Ship Mode"])
+  // .layers([
+  //   {
+  //     mark: "text",
+  //     encoding: {
+  //       text: "Quantity",
+  //       color: "Region",
+  //     },
+  //   },
+  // ])
   .layers([
     {
       mark: "text",
@@ -41,6 +50,30 @@ window.canvas = env
       },
     },
   ])
+  .config({
+    legend: {
+      color: {
+        fields: {
+          Region: {
+            domainRangeMap: {
+              "Central": "#251991",
+              "West": "#c7db0f",
+            },
+            range: [
+              "#37B067",
+              "#6296BC",
+              "#EDB40D",
+              "#7FD7C1",
+              "#9F8CAE",
+              "#EB6672",
+              "#376C72",
+              "#EE9DCC",
+            ],
+          },
+        },
+      },
+    },
+  })
   .mount("#chart");
 
 const button = document.getElementById("button");
