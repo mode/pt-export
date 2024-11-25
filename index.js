@@ -1,4 +1,5 @@
 import ExcelJS from "exceljs";
+import { STARTCOLUMN, STARTROW } from "./constants.js";
 
 async function saveExcelFile(blob) {
   try {
@@ -30,53 +31,75 @@ async function saveExcelFile(blob) {
 }
 
 const insertColumnHeaders = (columnHeaders, sheet, prevRowsCount) => {
-  columnHeaders.forEach((row) => {
-       // Process each row
-       const formattedRow = row.map((cell) => {
-        if (cell && typeof cell === "object") {
-          return Number(cell.text) ? Number(cell.text) : cell.text; 
-        }
-        return " ";
-      });
+  columnHeaders.forEach((row, rowIdx) => {
+    row.forEach((cell, colIdx) => {
+      const formattedCell =
+        cell && typeof cell === "object"
+          ? Number(cell.text)
+            ? Number(cell.text)
+            : cell.text
+          : " ";
 
-      console.log("formattedRow" , formattedRow);
-  
-      // Add the formatted row to the sheet
-      sheet.addRow(formattedRow);
+      const targetCell = sheet.getCell(
+        STARTROW + rowIdx + prevRowsCount,
+        STARTCOLUMN + colIdx
+      );
+      targetCell.value = formattedCell;
+    });
   });
 
   columnHeaders.forEach((rowData, rowIdx) => {
-    debugger;
     let startIdx = 0;
-    while (startIdx < rowData.length && rowData[startIdx].text === "") startIdx++;
+    while (startIdx < rowData.length && rowData[startIdx].text === "")
+      startIdx++;
 
-    if (startIdx > 0) sheet.mergeCells(prevRowsCount + rowIdx + 1, 1, prevRowsCount + rowIdx + 1, startIdx); //Need to pass the rowNo and columnNo
+    if (startIdx > 0)
+      sheet.mergeCells(
+        prevRowsCount + rowIdx + STARTROW,
+        STARTCOLUMN,
+        prevRowsCount + rowIdx + STARTROW,
+        STARTCOLUMN + startIdx - 1
+      ); //Need to pass the rowNo and columnNo
     if (startIdx === rowData.length) return;
 
     let endIdx = startIdx;
     while (startIdx < rowData.length) {
       if (rowData[startIdx].text !== "" && startIdx !== endIdx) {
-        sheet.mergeCells(prevRowsCount + rowIdx + 1, endIdx + 1, prevRowsCount + rowIdx + 1, startIdx);
+        sheet.mergeCells(
+          prevRowsCount + rowIdx + STARTROW,
+          endIdx + STARTCOLUMN,
+          prevRowsCount + rowIdx + STARTROW,
+          startIdx + STARTCOLUMN - 1
+        );
         endIdx = startIdx;
       }
       startIdx++;
     }
-    sheet.mergeCells(prevRowsCount + rowIdx + 1, endIdx + 1, prevRowsCount + rowIdx + 1, startIdx);
+    sheet.mergeCells(
+      prevRowsCount + rowIdx + STARTROW,
+      endIdx + STARTCOLUMN,
+      prevRowsCount + rowIdx + STARTROW,
+      startIdx + STARTCOLUMN - 1 
+    );
   });
 };
 
-const insertRowHeaders = (rowHeaders, sheet, prevRowCount) => {
-  rowHeaders.forEach((row) => {
-    // Process each row
-    const formattedRow = row.map((cell) => {
-      if (cell && typeof cell === "object") {
-        return Number(cell.text) ? Number(cell.text) : cell.text; 
-      }
-      return " ";
-    });
+const insertRowHeaders = (rowHeaders, sheet, prevRowsCount) => {
+ rowHeaders.forEach((row, rowIdx) => {
+    row.forEach((cell, colIdx) => {
+      const formattedCell =
+        cell && typeof cell === "object"
+          ? Number(cell.text)
+            ? Number(cell.text)
+            : cell.text
+          : " ";
 
-    // Add the formatted row to the sheet
-    sheet.addRow(formattedRow);
+      const targetCell = sheet.getCell(
+        STARTROW + rowIdx + prevRowsCount,
+        STARTCOLUMN + colIdx
+      );
+      targetCell.value = formattedCell;
+    });
   });
 
   const numOfCols = rowHeaders[0].length;
@@ -94,13 +117,13 @@ const insertRowHeaders = (rowHeaders, sheet, prevRowCount) => {
         // If a new mergeValue is found, close the previous merge (if any)
         if (startRow !== null) {
           sheet.mergeCells(
-            prevRowCount + startRow,
-            col,
-            prevRowCount + row - 1,
-            col
+            prevRowsCount + startRow + STARTROW - 1,
+            STARTCOLUMN + col - 1,
+            prevRowsCount + STARTROW + row - 2,
+            STARTCOLUMN + col - 1
           );
 
-          sheet.getCell(prevRowCount + startRow, col).alignment = {
+          sheet.getCell(prevRowsCount + startRow + STARTROW - 1, STARTCOLUMN + col - 1).alignment = {
             vertical: "top",
           };
         }
@@ -119,23 +142,22 @@ const insertRowHeaders = (rowHeaders, sheet, prevRowCount) => {
     // Merge the last range in the column with top alignment
     if (startRow !== null) {
       sheet.mergeCells(
-        prevRowCount + startRow,
-        col,
-        prevRowCount + rowLen,
-        col
+        prevRowsCount + startRow + STARTROW - 1,
+        STARTCOLUMN + col - 1,
+        prevRowsCount + rowLen + STARTROW - 1,
+        STARTCOLUMN + col - 1
       );
 
-      sheet.getCell(prevRowCount + startRow, col).alignment = {
+      sheet.getCell(prevRowsCount + startRow + STARTROW - 1, col + STARTCOLUMN - 1).alignment = {
         vertical: "top",
       };
     }
   }
 };
 
-const insertGeomMatrix = (geomData, sheet, prevRowCount, prevColCount) => {
-  debugger;
-  let rowNo = prevRowCount + 1;
-  const columnNoStart = prevColCount + 1;
+const insertGeomMatrix = (geomData, sheet, prevRowsCount, prevColCount) => {
+  let rowNo = prevRowsCount + STARTROW;
+  const columnNoStart = prevColCount + STARTCOLUMN;
 
   geomData.forEach((row) => {
     let columnNo = columnNoStart;
@@ -171,8 +193,16 @@ const insertGeomMatrix = (geomData, sheet, prevRowCount, prevColCount) => {
     rowNo++;
   });
 };
+
+const setColumnWidth = (maxWidths, sheet) => {
+  maxWidths.forEach((width, index) => {
+    sheet.getColumn(index + STARTCOLUMN).width = width; // ExcelJS columns are 1-based
+  });
+};
+
 const convertToExcel = (params) => {
-  const { columnHeaders, rowHeaders, xSplit, ySplit, geomData } = params;
+  const { columnHeaders, rowHeaders, xSplit, ySplit, geomData, maxWidths } =
+    params;
   const workbook = new ExcelJS.Workbook();
   const sheet = workbook.addWorksheet("Sheet", {
     views: [
@@ -183,16 +213,18 @@ const convertToExcel = (params) => {
       },
     ],
   });
+  debugger;
+  setColumnWidth(maxWidths, sheet);
 
-  insertColumnHeaders(columnHeaders[0], sheet , 0);  //Insert top column Matrix
+  insertColumnHeaders(columnHeaders[0], sheet, 0); //Insert top column Matrix
 
   insertRowHeaders(rowHeaders[0], sheet, columnHeaders[0].length); //Inserting left row matrix
 
-  if(columnHeaders[1].length) {
+  if (columnHeaders[1].length) {
     const prevRowsCount = columnHeaders[0].length + rowHeaders[0].length;
-    insertColumnHeaders(columnHeaders[1], sheet , prevRowsCount);  //Inserting bottom column matrix
-  } 
- 
+    insertColumnHeaders(columnHeaders[1], sheet, prevRowsCount); //Inserting bottom column matrix
+  }
+
   insertGeomMatrix(
     geomData,
     sheet,
@@ -330,7 +362,6 @@ const generateLRMatrix = (
 const extractPivotData = (canvas) => {
   let columnWidth = [0];
   let columnAxisLength = [];
-  debugger;
   // Exporting data from the column matrix
   const columnMatrix = canvas._composition.layout._columnMatrix._layoutMatrix;
   const topMatrix = canvas._composition.layout._columnMatrix._primaryMatrix;
@@ -467,6 +498,7 @@ const extractPivotData = (canvas) => {
     xSplit: xSplit,
     ySplit: ySplit,
     geomData: geomData,
+    maxWidths: maxWidths,
   };
 };
 
