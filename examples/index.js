@@ -1,6 +1,6 @@
 import muze from "@viz/muze";
 import "@viz/muze/muze.css";
-import { exportToExcel } from "../index.js";
+import { exportToExcel } from "../main.js";
 
 const loadData = async function ({
   dataSetLink = "/data/cars.json",
@@ -21,7 +21,7 @@ let { schema, data } = await loadData({
 
 const { DataModel } = muze;
 const env = muze();
-// console.log("Hi");
+
 
 const formattedData = DataModel.loadDataSync(data, schema);
 let rootData = new DataModel(formattedData);
