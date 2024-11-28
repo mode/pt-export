@@ -148,6 +148,19 @@ const generateLRMatrix = (
 };
 
 export const extractPivotData = (canvas) => {
+  const visualGroup = canvas._composition.visualGroup;
+  const columnHeaderContent = visualGroup._config.columns.headers.content;
+  const hasBg =
+    Object.entries(visualGroup._backgroundColor).length !== 0 ||
+    visualGroup._layers[0].encoding.backgroundColor !== undefined;
+
+  const hasColor =
+    Object.entries(visualGroup._color).length !== 0 ||
+    visualGroup._layers[0].encoding.color !== undefined;
+
+  // const backgroundOnly = hasBg && !hasColor;
+  // const noBgNoColor = !hasBg && !hasColor;
+
   let columnWidth = [0];
   let columnAxisLength = [];
   // Exporting data from the column matrix
@@ -174,7 +187,7 @@ export const extractPivotData = (canvas) => {
 
   console.log("columnHeaders", columnHeaders);
   console.log("columnMaxWidths", columnMaxWidths);
-  console.log(canvas._composition.layout);
+  console.log(canvas);
 
   // Exporting data from the row matrix
   const matrix = canvas._composition.layout._rowMatrix;
@@ -294,5 +307,8 @@ export const extractPivotData = (canvas) => {
     ySplit: ySplit,
     geomData: geomData,
     maxWidths: maxWidths,
+    columnHeaderContent: columnHeaderContent,
+    hasBg: hasBg,
+    hasColor : hasColor
   };
 };

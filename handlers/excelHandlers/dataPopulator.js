@@ -1,16 +1,22 @@
 import { isValidHslaFormat } from "../../colorUtils/colorValidator";
 import { hslaToArgb } from "../../colorUtils/colorFormatter";
 import {
+  CELLBORDERCOLOR,
+  CELLBORDERSTYLE,
   STARTCOLUMN,
   STARTROW,
   //   PADDING,
-  TABLEBORDER,
 } from "../../constants/layoutConstants";
-import { applyZebraStriping, setAlignment, setBorder } from "./helpers";
+import {
+  applyZebraStriping,
+  setAlignment,
+  setBorder,
+  applyColor,
+} from "./helpers";
 
-export const insertColumnHeaders = (columnHeaders, sheet, prevRowsCount) => {
-  //Adding columnHeaders data to the sheet
-  columnHeaders.forEach((row, rowIdx) => {
+export const insertColumnMatrix = (columnMatrix, sheet, prevRowsCount) => {
+  //Adding columnMatrix data to the sheet
+  columnMatrix.forEach((row, rowIdx) => {
     row.forEach((cell, colIdx) => {
       const formattedCell =
         cell && typeof cell === "object"
@@ -28,7 +34,7 @@ export const insertColumnHeaders = (columnHeaders, sheet, prevRowsCount) => {
   });
 
   //Merging cells, when necessary
-  columnHeaders.forEach((rowData, rowIdx) => {
+  columnMatrix.forEach((rowData, rowIdx) => {
     let startIdx = 0;
     while (startIdx < rowData.length && rowData[startIdx].text === "")
       startIdx++;
@@ -65,17 +71,17 @@ export const insertColumnHeaders = (columnHeaders, sheet, prevRowsCount) => {
   });
 };
 
-export const insertRowHeaders = (
-  rowHeaders,
+export const insertRowMatrix = (
+  rowMatrix,
   sheet,
   prevRowsCount,
   prevColsCount,
   isLeftMatrix
 ) => {
-  const rowMatrixLen = rowHeaders[0].length;
+  const rowMatrixLen = rowMatrix[0].length;
 
-  //Adding rowHeaders data to the sheet and applying zebra striping only to the axis of left row matrix, not facets
-  rowHeaders.forEach((row, rowIdx) => {
+  //Adding rowMatrix data to the sheet and applying zebra striping only to the axis of left row matrix, not facets
+  rowMatrix.forEach((row, rowIdx) => {
     row.forEach((cell, colIdx) => {
       const formattedCell =
         cell && typeof cell === "object"
@@ -92,18 +98,15 @@ export const insertRowHeaders = (
       if (isLeftMatrix) {
         if (colIdx + 1 === rowMatrixLen && rowIdx % 2 === 1) {
           applyZebraStriping(targetCell);
-          setBorder(targetCell, "left", "thin", "D9D9D9");
-        }
-        //Applying border to the table
-        if (colIdx === 0) {
-          setBorder(targetCell, "left", "medium", TABLEBORDER);
+          setBorder(targetCell, "left", CELLBORDERSTYLE, CELLBORDERCOLOR);
+          setBorder(targetCell, "right", CELLBORDERSTYLE, CELLBORDERCOLOR);
         }
       }
     });
   });
 
-  const numOfCols = rowHeaders[0].length;
-  const rowLen = rowHeaders.length;
+  const numOfCols = rowMatrix[0].length;
+  const rowLen = rowMatrix.length;
 
   //Merging cells, when necessary
   for (let col = 1; col < numOfCols; col++) {
@@ -112,7 +115,7 @@ export const insertRowHeaders = (
     let mergeValue = "";
 
     for (let row = 1; row <= rowLen; row++) {
-      const cellValue = rowHeaders[row - 1][col - 1].text;
+      const cellValue = rowMatrix[row - 1][col - 1].text;
 
       if (cellValue && cellValue !== mergeValue) {
         // If a new mergeValue is found, close the previous merge (if any)
@@ -162,9 +165,58 @@ export const insertRowHeaders = (
   for (let i = 0; i < rowLen; i++) {
     const targetCell = sheet.getCell(
       prevRowsCount + STARTROW + i,
-      STARTCOLUMN + rowHeaders[0].length - 1
+      STARTCOLUMN + rowMatrix[0].length - 1
     );
     setAlignment(targetCell, "middle");
+  }
+};
+
+export const addValue = (item, alignment) => {
+  let value = item.text;
+  let isNumeric = false;
+
+  if (Number(value) || Number(value) === 0) {
+    alignment.align = "right";
+    isNumeric = true;
+  }
+
+  return isNumeric ? Number(value) : value;
+};
+
+export const addColor = (item, hasBg, hasColor) => {
+  let color = item.color;
+
+  //Currently accepting only validHslaFormat
+  if (isValidHslaFormat(color)) {
+    color = hslaToArgb(color);
+  } else {
+    return;
+  }
+
+  let backgroundColor = item.backgroundColor;
+
+  //Currently accepting only validHslaFormat
+  if (isValidHslaFormat(backgroundColor)) {
+    backgroundColor = hslaToArgb(backgroundColor);
+  } else {
+    return;
+  }
+
+  if (!hasBg && !hasColor) {
+    //both color and backgroundColor encoding is not present
+
+    //default black color for the text
+    return "000000";
+  } else if (hasBg && !hasColor) {
+    //only backgroundColor encoding is present, not the color encoding
+
+    // default white color for the text
+    return backgroundColor;
+  } else {
+    //Both color and backgroundColor encoding is present
+    //only color encoding is present, not the backgroundColor encoding
+
+    return color;
   }
 };
 
@@ -172,8 +224,11 @@ export const insertGeomMatrix = (
   geomData,
   sheet,
   prevRowsCount,
-  prevColCount
+  prevColCount,
+  hasBg,
+  hasColor
 ) => {
+  debugger;
   let rowNo = prevRowsCount + STARTROW;
   const columnNoStart = prevColCount + STARTCOLUMN;
 
@@ -182,31 +237,18 @@ export const insertGeomMatrix = (
 
     row.forEach((cell, idx) => {
       const cellRef = sheet.getCell(rowNo, columnNo);
-      let align = "left";
+      let alignment = { align: "left" };
 
       if (cell === null) {
         // Skip the cell if it's null
       } else {
         const colors = [];
         const values = [];
+
         cell.forEach((item) => {
-          let value = item.text;
-          let color = item.color;
+          values.push(addValue(item, alignment));
 
-          let argbColor = "000000"; //Default to black
-          let isNumeric = false;
-
-          if (isValidHslaFormat(color)) {
-            argbColor = hslaToArgb(color);
-          }
-
-          if (Number(value) || Number(value) === 0) {
-            align = "right";
-            isNumeric = true;
-          }
-
-          colors.push(argbColor);
-          values.push(isNumeric ? Number(value) : value);
+          colors.push(addColor(item, hasBg, hasColor));
         });
 
         if (values.length > 1) {
@@ -221,27 +263,34 @@ export const insertGeomMatrix = (
         } else {
           cellRef.value = values[0];
 
-          cellRef.font = {
-            color: { argb: colors[0] },
-          };
+          applyColor(cellRef, colors);
         }
 
-        setAlignment(cellRef, "top", align);
+        setAlignment(cellRef, "top", alignment.align);
       }
 
       //Apply Zebra striping
       if (rowIdx % 2 === 1) {
         applyZebraStriping(cellRef);
         if (idx === geomData[0].length - 1)
-          setBorder(cellRef, "right", "thin", "D9D9D9");
+          setBorder(cellRef, "right", CELLBORDERSTYLE, CELLBORDERCOLOR); //Light grey border on the right
       }
 
-      //Apply table border
-      if (idx === geomData[0].length - 1) {
-        setBorder(cellRef, "right", "medium", TABLEBORDER);
-      }
       columnNo++;
     });
     rowNo++;
   });
+};
+
+export const insertColumnHeader = (
+  sheet,
+  totalColumns,
+  columnHeaderContent
+) => {
+  debugger;
+  const middleCell = sheet.getCell(
+    Math.max(STARTROW - 1, 1), // Ensure the row is at least 1
+    STARTCOLUMN + Math.floor(totalColumns / 2) // Use Math.floor to get an integer column index
+  );
+  middleCell.value = columnHeaderContent;
 };

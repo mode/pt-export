@@ -6,6 +6,7 @@ const loadData = async function ({
   dataSetLink = "/data/cars.json",
   schemaLink = "/data/cars-schema.json",
 }) {
+  debugger;
   let data = await fetch(dataSetLink).then((d) =>
     dataSetLink.split(".").pop() === "csv" ? d.text() : d.json()
   );
@@ -33,7 +34,7 @@ window.canvas = env
   // .columns([["Category"],["Sub-Category"]])
   // .rows(["Region" ,"Ship Mode"])
   .rows(["Sub-Category", "Ship Mode"])
-  .columns(["Ship Mode"])
+  .columns([["Ship Mode"] , ["Category"]])
   // .color('Region')
   .layers([
     {

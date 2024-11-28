@@ -1,11 +1,17 @@
 import ExcelJS from "exceljs";
 import {
-  insertColumnHeaders,
-  insertRowHeaders,
+  insertColumnMatrix,
+  insertRowMatrix,
   insertGeomMatrix,
+  insertColumnHeader,
 } from "./dataPopulator";
-import { setColumnWidth } from "./helpers";
-
+import { setBorder, setColumnWidth, applyTableBorder } from "./helpers";
+import {
+  STARTCOLUMN,
+  STARTROW,
+  TABLEBORDERCOLOR,
+  TABLEBORDERSTYLE,
+} from "../../constants/layoutConstants";
 
 async function saveExcelFile(blob) {
   try {
@@ -36,9 +42,28 @@ async function saveExcelFile(blob) {
   }
 }
 
+export const downloadSheet = (workBook) => {
+    // Create a BLOB object from the workbook
+    workBook.xlsx.writeBuffer().then((buffer) => {
+      const blob = new Blob([buffer], {
+        type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      });
+      saveExcelFile(blob);
+    });
+
+}
 export const convertToExcel = (params) => {
-  const { columnHeaders, rowHeaders, xSplit, ySplit, geomData, maxWidths } =
-    params;
+  const {
+    columnHeaders: columnMatrix,
+    rowHeaders: rowMatrix,
+    xSplit,
+    ySplit,
+    geomData,
+    maxWidths,
+    columnHeaderContent,
+    hasBg,
+    hasColor,
+  } = params;
 
   const workbook = new ExcelJS.Workbook();
 
@@ -55,41 +80,47 @@ export const convertToExcel = (params) => {
   setColumnWidth(maxWidths, sheet);
 
   //Insert top column Matrix
-  insertColumnHeaders(columnHeaders[0], sheet, 0);
+  insertColumnMatrix(columnMatrix[0], sheet, 0);
 
   //Insert left row matrix
-  insertRowHeaders(rowHeaders[0], sheet, columnHeaders[0].length, 0, true);
+  insertRowMatrix(rowMatrix[0], sheet, columnMatrix[0].length, 0, true);
 
   //Insert bottom column matrix, if present
-  if (columnHeaders[1].length) {
-    const prevRowsCount = columnHeaders[0].length + rowHeaders[0].length;
-    insertColumnHeaders(columnHeaders[1], sheet, prevRowsCount);
+  if (columnMatrix[1].length) {
+    const prevRowsCount = columnMatrix[0].length + rowMatrix[0].length;
+    insertColumnMatrix(columnMatrix[1], sheet, prevRowsCount);
   }
 
   insertGeomMatrix(
     geomData,
     sheet,
-    columnHeaders[0].length,
-    rowHeaders[0].length > 0 ? rowHeaders[0][0].length : 0
+    columnMatrix[0].length,
+    rowMatrix[0].length > 0 ? rowMatrix[0][0].length : 0,
+    hasBg,
+    hasColor
   );
 
+  const totalColumns =
+    rowMatrix[0][0].length + geomData[0].length + rowMatrix[1][0].length;
+
+  const totalRows = columnMatrix[0].length + columnMatrix[1].length + geomData.length
+
+  if (columnHeaderContent)
+    insertColumnHeader(sheet, totalColumns, columnHeaderContent);
+
   //Insert right row matrix, if present
-  if (rowHeaders[1][0].length) {
-    const prevColsCount = rowHeaders[0][1].length + geomData[0].length;
-    insertRowHeaders(
-      rowHeaders[1],
+  if (rowMatrix[1][0].length) {
+    const prevColsCount = rowMatrix[0][1].length + geomData[0].length;
+    insertRowMatrix(
+      rowMatrix[1],
       sheet,
-      columnHeaders[0].length,
+      columnMatrix[0].length,
       prevColsCount,
       false
     );
   }
 
-  // Create a BLOB object from the workbook
-  workbook.xlsx.writeBuffer().then((buffer) => {
-    const blob = new Blob([buffer], {
-      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-    });
-    saveExcelFile(blob);
-  });
+  applyTableBorder(sheet, columnHeaderContent, totalColumns, totalRows);
+
+  return workbook;
 };
