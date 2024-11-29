@@ -5,7 +5,7 @@ import {
   insertGeomMatrix,
   insertColumnHeader,
 } from "./dataPopulator";
-import { setBorder, setColumnWidth, applyTableBorder } from "./helpers";
+import {setColumnWidth, applyTableBorder } from "./helpers";
 import {
   STARTCOLUMN,
   STARTROW,
